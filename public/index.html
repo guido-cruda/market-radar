@@ -243,6 +243,7 @@ function renderSigs(sigs){
 
 function drawSpark(){
   const c=document.getElementById('spark');
+  if(!c) return;
   const dpr=window.devicePixelRatio||1,w=c.offsetWidth||280,h=42;
   c.width=w*dpr;c.height=h*dpr;
   const ctx=c.getContext('2d');ctx.scale(dpr,dpr);
@@ -339,7 +340,8 @@ async function load(){
       const t = new Date(r._updated).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
       const isToday = new Date(r._updated).toDateString() === new Date().toDateString();
       const prefix = isToday ? 'oggi' : new Date(r._updated).toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit'});
-      document.getElementById('upd').innerHTML = `<span class="pulse" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;margin-right:5px;vertical-align:middle"></span>↻ ${prefix} ${t}  ·  ⏱ prossimo ${nextUpdateTime()}`;
+      const dot = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;margin-right:5px;vertical-align:middle"></span>';
+      document.getElementById('upd').innerHTML = dot + '\u21bb ' + prefix + ' ' + t + '  \u00b7  \u23f1 prossimo ' + nextUpdateTime();
       document.getElementById('upd').style.display = 'block';
       const hoursOld = (Date.now() - new Date(r._updated).getTime()) / 3600000;
       document.getElementById('stale').style.display = hoursOld > 14 ? 'block' : 'none';
