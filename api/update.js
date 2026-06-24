@@ -1,4 +1,4 @@
-const { kv } = require('@vercel/kv');
+const { Redis } = require('@upstash/redis');
 
 const SYS = `Sei un analista finanziario. Analizza il rischio di correzione imminente (calo oltre 10% nelle prossime 4 settimane) dei mercati azionari globali. Restituisci SOLO JSON valido, zero testo esterno, zero backtick, zero markdown.
 
@@ -25,7 +25,6 @@ module.exports = async function handler(req, res) {
   if (!isCron && !isManual) {
     return res.status(401).json({ error: 'Non autorizzato' });
   }
-
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -42,24 +41,19 @@ module.exports = async function handler(req, res) {
         messages: [{ role: 'user', content: 'Analizza i mercati globali adesso e restituisci il JSON.' }]
       })
     });
-
     if (!response.ok) throw new Error(`Anthropic ${response.status}`);
-
     const data = await response.json();
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
     const s = txt.indexOf('{'), e = txt.lastIndexOf('}') + 1;
     if (s < 0 || e <= s) throw new Error('Nessun JSON nella risposta');
-
     let raw = txt.slice(s, e)
       .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, ' ')
       .replace(/\uFF0C/g, ',')
       .replace(/,(\s*[}\]])/g, '$1');
-
     const result = JSON.parse(raw);
     result._updated = new Date().toISOString();
-
-    await kv.set('radar_latest', result);
-
+    const redis = Redis.fromEnv();
+    await redis.set('radar_latest', result);
     return res.status(200).json({ ok: true, score: result.composite_score });
   } catch (err) {
     console.error(err);
