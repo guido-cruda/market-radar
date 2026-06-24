@@ -158,7 +158,7 @@ function arcPath(v){
   return`M${SX} ${SY} A${R} ${R} 0 ${SP*v/100>180?1:0} 1 ${ex} ${ey}`;
 }
 function col(v){return v<26?'#00e67a':v<51?'#fbbf24':v<76?'#f97316':'#ef4444'}
-function rlbl(v){return v<26?'Minga mal':v<51?'Ocio':v<76?'Dàghela via':'Roba de matt'}
+function rlbl(v){return v<26?'Minga mal':v<51?'Ocio':v<76?'Roba de matt':'Dàghela via'}
 
 function animScore(target){
   const sn=document.getElementById('snum'),sp=document.getElementById('spct');
