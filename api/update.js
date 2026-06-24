@@ -64,6 +64,8 @@ module.exports = async function handler(req, res) {
     );
     result._updated = new Date().toISOString();
     await redis.set('radar_latest', result);
+    await redis.lpush('radar_history', { score: result.composite_score, t: result._updated });
+    await redis.ltrim('radar_history', 0, 13);
     return res.status(200).json({ ok: true, score: result.composite_score });
   } catch (err) {
     console.error(err);
