@@ -62,6 +62,8 @@ module.exports = async function handler(req, res) {
     result.composite_score = Math.round(
       result.signals.reduce((sum, s) => sum + s.score * s.weight, 0) / 100
     );
+    const s = result.composite_score;
+    result.risk_level = s < 26 ? 'Minga mal' : s < 51 ? 'Ocio' : s < 76 ? 'Roba de matt' : 'Dàghela via';
     result._updated = new Date().toISOString();
     await redis.set('radar_latest', result);
     await redis.lpush('radar_history', { score: result.composite_score, t: result._updated });
