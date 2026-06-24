@@ -14,6 +14,7 @@ module.exports = async function handler(req, res) {
     }
     return res.status(200).json(data);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    const history = await redis.lrange('radar_history', 0, 13);
+    return res.status(200).json({ ...data, _history: history });
   }
 };
