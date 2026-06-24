@@ -13,8 +13,10 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{color-scheme:dark;--bg:#07080d;--card:#0d0f18;--bd:#1c1f30;--txt:#e8eaf2;--mt:#6b7280;--ft:#2d3140}
 html,body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;min-height:100dvh;overflow-x:hidden}
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 14px;padding-top:calc(env(safe-area-inset-top,0px)+16px);border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--bg);z-index:10}
-.logo{font-size:15px;font-weight:700;letter-spacing:.04em}.logo span{color:var(--mt);font-weight:400}
+.hdr{display:flex;align-items:center;justify-content:flex-end;padding:12px 20px;padding-top:calc(env(safe-area-inset-top,0px)+12px);position:sticky;top:0;background:var(--bg);z-index:10}
+.gauge-title{text-align:center;margin-bottom:10px}
+.gauge-title-main{font-size:15px;font-weight:700;letter-spacing:.04em;color:var(--txt)}
+.gauge-title-main span{color:var(--mt);font-weight:400}
 .live{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mt);letter-spacing:.1em}
 .pulse{width:7px;height:7px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{opacity:.6;box-shadow:0 0 0 5px rgba(34,197,94,0)}}
@@ -87,12 +89,12 @@ svg.g{width:100%;max-width:300px;overflow:visible}
 </head>
 <body style="background:#07080d">
 
-<div class="hdr">
-  <div class="logo">🌍 Market Correction <span>Radar</span></div>
-  <div class="live"><div class="pulse"></div><span>LIVE</span></div>
-</div>
+<div class="hdr" style="border:none;padding:8px 20px;padding-top:calc(env(safe-area-inset-top,0px)+8px)"></div>
 
 <div class="main">
+  <div class="gauge-title">
+    <div class="gauge-title-main">🌍 Market Correction <span>Radar</span></div>
+  </div>
   <div class="gwrap">
     <svg class="g" viewBox="0 0 300 195" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -120,21 +122,6 @@ svg.g{width:100%;max-width:300px;overflow:visible}
       <div class="rpill" id="rpill">Caricamento…</div>
       <div class="upd" id="upd"></div>
       <div class="stale" id="stale">⚠ Dati non aggiornati oggi</div>
-    </div>
-  </div>
-
-  <div class="summ" id="summ">Caricamento dati in corso…</div>
-
-  <div class="tbox">
-    <div class="shd">Trend sessione</div>
-    <canvas id="spark" height="42" style="width:100%;display:block"></canvas>
-  </div>
-
-  <div class="status-bar" id="statusBar" style="display:none">
-    <div class="status-item">↻ Ultimo aggiornamento <strong id="lastUpd">—</strong></div>
-    <div class="status-dot"></div>
-    <div class="status-item">⏱ Prossimo <strong id="nextUpd">—</strong></div>
-  </div>
 
   <div class="shd" id="sighd" style="margin-bottom:8px"></div>
   <div class="sigs" id="sigs"></div>
@@ -350,15 +337,12 @@ async function load(){
 
     if(r._updated){
       const t = new Date(r._updated).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
-      const d = new Date(r._updated).toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit'});
       const isToday = new Date(r._updated).toDateString() === new Date().toDateString();
-      document.getElementById('lastUpd').textContent = isToday ? `oggi alle ${t}` : `${d} alle ${t}`;
-      document.getElementById('nextUpd').textContent = nextUpdateTime();
-      document.getElementById('statusBar').style.display = 'flex';
-      document.getElementById('upd').style.display = 'none';
-      const staleEl = document.getElementById('stale');
+      const prefix = isToday ? 'oggi' : new Date(r._updated).toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit'});
+      document.getElementById('upd').innerHTML = `<span class="pulse" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;margin-right:5px;vertical-align:middle"></span>↻ ${prefix} ${t}  ·  ⏱ prossimo ${nextUpdateTime()}`;
+      document.getElementById('upd').style.display = 'block';
       const hoursOld = (Date.now() - new Date(r._updated).getTime()) / 3600000;
-      staleEl.style.display = hoursOld > 14 ? 'block' : 'none';
+      document.getElementById('stale').style.display = hoursOld > 14 ? 'block' : 'none';
     }
 
     if(r.signals?.length)renderSigs(r.signals);
