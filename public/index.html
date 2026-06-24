@@ -317,11 +317,13 @@ async function load(){
   lmsg.textContent='Caricamento dati…';
   try{
     var res=await fetch('/api/data');
+    console.log('fetch ok, status:', res.status);
     if(!res.ok){
       var e=await res.json().catch(function(){return{};});
       throw new Error(e.error||'Errore '+res.status);
     }
     var r=await res.json();
+    console.log('data ok, score:', r.composite_score, 'history:', r._history?.length);
     var score=Math.max(0,Math.min(100,r.composite_score));
     lastSignals=r.signals;
     animScore(score);
