@@ -41,7 +41,10 @@ module.exports = async function handler(req, res) {
         messages: [{ role: 'user', content: 'Analizza i mercati globali adesso e restituisci il JSON.' }]
       })
     });
-    if (!response.ok) throw new Error(`Anthropic ${response.status}`);
+    if (!response.ok) {
+      const errBody = await response.text();
+      throw new Error(`Anthropic ${response.status}: ${errBody}`);
+    }
     const data = await response.json();
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
     const s = txt.indexOf('{'), e = txt.lastIndexOf('}') + 1;
