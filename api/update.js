@@ -59,6 +59,9 @@ module.exports = async function handler(req, res) {
       .replace(/\uFF0C/g, ',')
       .replace(/,(\s*[}\]])/g, '$1');
     const result = JSON.parse(raw);
+    result.composite_score = Math.round(
+      result.signals.reduce((sum, s) => sum + s.score * s.weight, 0) / 100
+    );
     result._updated = new Date().toISOString();
     await redis.set('radar_latest', result);
     return res.status(200).json({ ok: true, score: result.composite_score });
