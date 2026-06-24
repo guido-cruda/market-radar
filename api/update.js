@@ -26,6 +26,11 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ error: 'Non autorizzato' });
   }
   try {
+    const redis = new Redis({
+      url: process.env.KV_REST_API_URL,
+      token: process.env.KV_REST_API_TOKEN
+    });
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -55,7 +60,6 @@ module.exports = async function handler(req, res) {
       .replace(/,(\s*[}\]])/g, '$1');
     const result = JSON.parse(raw);
     result._updated = new Date().toISOString();
-    const redis = Redis.fromEnv();
     await redis.set('radar_latest', result);
     return res.status(200).json({ ok: true, score: result.composite_score });
   } catch (err) {
