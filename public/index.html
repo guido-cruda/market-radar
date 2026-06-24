@@ -82,8 +82,8 @@ svg.g{width:100%;max-width:300px;overflow:visible}
 <body style="background:#07080d">
 
 <div class="safe-top"></div>
-
 <div class="main">
+
   <div class="gauge-title">🌍 Market Correction <span>Radar</span></div>
 
   <div class="gwrap">
@@ -123,11 +123,12 @@ svg.g{width:100%;max-width:300px;overflow:visible}
 
   <div class="tbox">
     <div class="shd">Trend settimanale</div>
-    <div id="spark" style="width:100%;height:80px;position:relative"></div>
+    <div id="spark" style="width:100%;min-height:80px"></div>
   </div>
 
   <div class="shd" id="sighd" style="margin-bottom:8px"></div>
   <div class="sigs" id="sigs"></div>
+
 </div>
 
 <div class="foot">Market Correction Radar · Solo scopi informativi · Non è consulenza finanziaria</div>
@@ -146,75 +147,70 @@ svg.g{width:100%;max-width:300px;overflow:visible}
 
 <script>
 /* ── GAUGE ───────────────────────────────────────────────── */
-const CX=150,CY=148,R=112,RN=90,SA=160,SP=220;
-function vpt(deg,r){const a=deg*Math.PI/180;return[CX+r*Math.cos(a),CY+r*Math.sin(a)];}
-const[SX,SY]=vpt(SA,R);const[EX,EY]=vpt(SA+SP,R);
-document.getElementById('gtrack').setAttribute('d',`M${SX} ${SY} A${R} ${R} 0 1 1 ${EX} ${EY}`);
+var CX=150,CY=148,R=112,RN=90,SA=160,SP=220;
+function vpt(deg,r){var a=deg*Math.PI/180;return[CX+r*Math.cos(a),CY+r*Math.sin(a)];}
+var SXY=vpt(SA,R),SX=SXY[0],SY=SXY[1];
+var EXY=vpt(SA+SP,R),EX=EXY[0],EY=EXY[1];
+document.getElementById('gtrack').setAttribute('d','M'+SX+' '+SY+' A'+R+' '+R+' 0 1 1 '+EX+' '+EY);
 
 function arcPath(v){
   if(v<=0)return'';
-  if(v>=99.9)return`M${SX} ${SY} A${R} ${R} 0 1 1 ${EX-.01} ${EY}`;
-  const[ex,ey]=vpt(SA+SP*v/100,R);
-  return`M${SX} ${SY} A${R} ${R} 0 ${SP*v/100>180?1:0} 1 ${ex} ${ey}`;
+  if(v>=99.9)return'M'+SX+' '+SY+' A'+R+' '+R+' 0 1 1 '+(EX-.01)+' '+EY;
+  var xy=vpt(SA+SP*v/100,R);
+  return'M'+SX+' '+SY+' A'+R+' '+R+' 0 '+(SP*v/100>180?1:0)+' 1 '+xy[0]+' '+xy[1];
 }
-function col(v){return v<26?'#00e67a':v<51?'#fbbf24':v<76?'#f97316':'#ef4444'}
-function rlbl(v){return v<26?'Minga mal':v<51?'Ocio':v<76?'Dàghela via':'Roba de matt'}
+function col(v){return v<26?'#00e67a':v<51?'#fbbf24':v<76?'#f97316':'#ef4444';}
+function rlbl(v){return v<26?'Minga mal':v<51?'Ocio':v<76?'Roba de matt':'Dàghela via';}
 
 function animScore(target){
-  const sn=document.getElementById('snum'),sp=document.getElementById('spct');
-  const start=parseInt(sn.textContent)||0,t0=performance.now();
-  const needle=document.getElementById('gneedle');needle.style.opacity='1';
-  (function step(now){
-    const p=Math.min((now-t0)/1100,1),e=1-Math.pow(1-p,3);
-    const cur=Math.round(start+(target-start)*e),c=col(cur);
+  var sn=document.getElementById('snum'),sp=document.getElementById('spct');
+  var start=parseInt(sn.textContent)||0,t0=performance.now();
+  var needle=document.getElementById('gneedle');needle.style.opacity='1';
+  function step(now){
+    var p=Math.min((now-t0)/1100,1),e=1-Math.pow(1-p,3);
+    var cur=Math.round(start+(target-start)*e),c=col(cur);
     sn.textContent=cur;sn.style.color=c;sp.style.color=c;needle.style.stroke=c;
     document.getElementById('garc').setAttribute('d',arcPath(cur));
-    const[nx,ny]=vpt(SA+SP*cur/100,RN);
-    needle.setAttribute('x2',nx);needle.setAttribute('y2',ny);
+    var nxy=vpt(SA+SP*cur/100,RN);
+    needle.setAttribute('x2',nxy[0]);needle.setAttribute('y2',nxy[1]);
     if(p<1)requestAnimationFrame(step);
-    else{sn.textContent=target;const fc=col(target);sn.style.color=fc;sp.style.color=fc;needle.style.stroke=fc;}
-  })(t0);
+    else{sn.textContent=target;var fc=col(target);sn.style.color=fc;sp.style.color=fc;needle.style.stroke=fc;}
+  }
+  requestAnimationFrame(step);
 }
 
 /* ── HELPERS ─────────────────────────────────────────────── */
 function nextUpdateTime(){
-  const now=new Date();
-  const slots=[4,16];
-  for(const h of slots){
-    if(now.getUTCHours()<h||(now.getUTCHours()===h&&now.getUTCMinutes()===0)){
-      const next=new Date(now);next.setUTCHours(h,0,0,0);
+  var now=new Date(),slots=[4,16];
+  for(var i=0;i<slots.length;i++){
+    if(now.getUTCHours()<slots[i]){
+      var next=new Date(now);next.setUTCHours(slots[i],0,0,0);
       return'oggi alle '+next.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
     }
   }
-  const tomorrow=new Date(now);
-  tomorrow.setUTCDate(tomorrow.getUTCDate()+1);
-  tomorrow.setUTCHours(4,0,0,0);
-  const dow=tomorrow.getDay();
-  if(dow===6)tomorrow.setUTCDate(tomorrow.getUTCDate()+2);
-  if(dow===0)tomorrow.setUTCDate(tomorrow.getUTCDate()+1);
-  return'domani alle '+tomorrow.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  var tom=new Date(now);tom.setUTCDate(tom.getUTCDate()+1);tom.setUTCHours(4,0,0,0);
+  var dow=tom.getDay();
+  if(dow===6)tom.setUTCDate(tom.getUTCDate()+2);
+  if(dow===0)tom.setUTCDate(tom.getUTCDate()+1);
+  return'domani alle '+tom.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
 }
 
 function trendHtml(t){
-  const map={up:['▲','#ef4444'],down:['▼','#22c55e'],stable:['▬','#6b7280']};
-  const[sym,c]=map[t]||map.stable;
-  return'<span class="sigtnd" style="color:'+c+'">'+sym+'</span>';
+  var map={up:['▲','#ef4444'],down:['▼','#22c55e'],stable:['▬','#6b7280']};
+  var arr=map[t]||map.stable;
+  return'<span class="sigtnd" style="color:'+arr[1]+'">'+arr[0]+'</span>';
 }
 
-const SIG_META={
-  markets:{icon:'📊'},insider:{icon:'👔'},
-  ipo_fever:{icon:'🚀'},retail_frenzy:{icon:'🛒'},skyscraper:{icon:'🏗️'}
-};
+var SIG_META={markets:{icon:'📊'},insider:{icon:'👔'},ipo_fever:{icon:'🚀'},retail_frenzy:{icon:'🛒'},skyscraper:{icon:'🏗️'}};
+var lastSignals=null;
 
-/* ── RENDER ──────────────────────────────────────────────── */
-let hist=[],lastSignals=null;
-
+/* ── RENDER SIGNALS ──────────────────────────────────────── */
 function renderSigs(sigs){
   document.getElementById('sighd').textContent='Segnali ('+sigs.length+')';
   document.getElementById('sigs').innerHTML=sigs.map(function(s){
     var icon=(SIG_META[s.id]||{icon:'📌'}).icon;
     var isMkts=s.id==='markets';
-    return '<div class="sig'+(isMkts?' markets-sig':'')+'">'+
+    return'<div class="sig'+(isMkts?' markets-sig':'')+'">'+
       '<div class="sigtop">'+
         '<div class="sigl">'+
           '<span class="sigfl">'+icon+'</span>'+
@@ -234,55 +230,73 @@ function renderSigs(sigs){
   }).join('');
 }
 
-function drawSpark(){
-  var c=document.getElementById('spark');
-  if(!c||!c.offsetParent&&c.offsetWidth===0)return;
-  var dpr=window.devicePixelRatio||1,w=c.offsetWidth||280,h=42;
-  c.width=w*dpr;c.height=h*dpr;
-  var ctx=c.getContext('2d');ctx.scale(dpr,dpr);
-  if(hist.length<2){
-    ctx.strokeStyle='#1c1f30';ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();
-    ctx.fillStyle='#374151';ctx.font='11px -apple-system';ctx.textAlign='center';
-    ctx.fillText('Nessun dato storico disponibile',w/2,36);return;
+/* ── SPARKLINE SVG ───────────────────────────────────────── */
+function drawSpark(history){
+  var el=document.getElementById('spark');
+  if(!el)return;
+  if(!history||history.length===0){
+    el.innerHTML='<div style="color:#374151;font-size:11px;text-align:center;padding:28px 0">Nessun dato storico disponibile</div>';
+    return;
   }
-  var pts=hist.map(function(v,i){return{x:(i/(hist.length-1))*(w-16)+8,y:h-6-(v/100)*(h-12)};});
-  var grd=ctx.createLinearGradient(0,0,0,h);
-  grd.addColorStop(0,'rgba(99,102,241,.35)');grd.addColorStop(1,'rgba(99,102,241,0)');
-  ctx.beginPath();ctx.moveTo(pts[0].x,h);
-  pts.forEach(function(p){ctx.lineTo(p.x,p.y);});
-  ctx.lineTo(pts[pts.length-1].x,h);ctx.closePath();
-  ctx.fillStyle=grd;ctx.fill();
-  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
-  pts.forEach(function(p){ctx.lineTo(p.x,p.y);});
-  ctx.strokeStyle='#6366f1';ctx.lineWidth=2;ctx.stroke();
-  var lp=pts[pts.length-1];
-  ctx.beginPath();ctx.arc(lp.x,lp.y,3,0,Math.PI*2);ctx.fillStyle='#818cf8';ctx.fill();
+  var W=el.offsetWidth||300,H=80,pad=12,chartH=H-16;
+  var data=[].concat(history).reverse();
+  var pts=data.map(function(d,i){
+    return{
+      x:pad+(i/(data.length-1||1))*(W-pad*2),
+      y:chartH-4-((d.score/100))*(chartH-12),
+      score:d.score,
+      t:new Date(d.t)
+    };
+  });
+  var polyPts=pts.map(function(p){return p.x+','+p.y;}).join(' ');
+  var first=pts[0],last=pts[pts.length-1];
+  var dots=pts.map(function(p){
+    return'<circle cx="'+p.x+'" cy="'+p.y+'" r="3.5" fill="'+col(p.score)+'"/>';
+  }).join('');
+  var labelIdx=[0];
+  if(pts.length>2)labelIdx.push(Math.floor(pts.length/2));
+  if(pts.length>1)labelIdx.push(pts.length-1);
+  labelIdx=labelIdx.filter(function(v,i,a){return a.indexOf(v)===i;});
+  var labels=labelIdx.map(function(i){
+    var p=pts[i];
+    return'<text x="'+p.x+'" y="'+(H-2)+'" text-anchor="middle" fill="#4b5563" font-size="9" font-family="-apple-system,sans-serif">'+
+      p.t.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})+'</text>';
+  }).join('');
+  el.innerHTML='<svg width="'+W+'" height="'+H+'" xmlns="http://www.w3.org/2000/svg">'+
+    '<defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">'+
+    '<stop offset="0%" stop-color="#6366f1" stop-opacity="0.3"/>'+
+    '<stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>'+
+    '</linearGradient></defs>'+
+    '<polygon points="'+first.x+','+chartH+' '+polyPts+' '+last.x+','+chartH+'" fill="url(#sg)"/>'+
+    '<polyline points="'+polyPts+'" fill="none" stroke="#6366f1" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
+    dots+labels+
+  '</svg>';
 }
-window.addEventListener('resize',drawSpark);
 
 /* ── INFO ────────────────────────────────────────────────── */
 var SINFO={
-  insider:{title:'Insider Selling Ratio',desc:'Monitora il rapporto tra vendite e acquisti di azioni proprie da parte di CEO, CFO e altri dirigenti sul mercato aperto. USA: Form 4 depositati alla SEC entro 2 giorni. Quando il ratio è elevato su più settori, indica che chi ha accesso diretto ai dati aziendali si sta alleggerendo.',src:['SEC EDGAR Form 4 filings','Bloomberg Corporate Insider Data','VerityData','OpenInsider.com']},
-  ipo_fever:{title:'IPO Fever Index',desc:'Percentuale di IPO con EBITDA negativo negli ultimi 90 giorni, numero di SPAC attivi, multipli price/sales medi. Valori elevati indicano che il mercato finanzia narrative di crescita ignorando i fondamentali.',src:['Renaissance Capital IPO Monitor','SEC S-1 filings','Bloomberg IPO Data','SPAC Research']},
-  retail_frenzy:{title:'Retail Frenzy Index',desc:'Google Trends su keyword finanziarie, volume opzioni 0DTE retail, adozione asset speculativi. Proxy di euforia popolare. Storicamente picca 4-8 settimane prima del top di mercato.',src:['Google Trends API','CBOE Options Data','Reddit r/wallstreetbets','Vanda Research Retail Flow']},
-  skyscraper:{title:'Skyscraper & Excess Index',desc:'Grattacieli record annunciati globalmente (Skyscraper Index Barclays 2012), backlog superyacht e jet privati, record nelle aste d\'arte contemporanea. Segnale di fase del ciclo su scala di mesi-anni.',src:['CTBUH Council on Tall Buildings','Superyacht Fan Order Book','Christie\'s e Sotheby\'s','GAMA Aviation Data']}
+  insider:{title:'Insider Selling Ratio',desc:'Monitora il rapporto tra vendite e acquisti di azioni proprie da parte di CEO, CFO e altri dirigenti sul mercato aperto. USA: Form 4 depositati alla SEC entro 2 giorni. Quando il ratio è elevato su più settori, chi ha accesso diretto ai dati aziendali si sta alleggerendo.',src:['SEC EDGAR Form 4 filings','Bloomberg Corporate Insider Data','VerityData','OpenInsider.com']},
+  ipo_fever:{title:'IPO Fever Index',desc:'Percentuale di IPO con EBITDA negativo negli ultimi 90 giorni, SPAC attivi, multipli price/sales medi. Valori elevati indicano che il mercato finanzia narrative di crescita ignorando i fondamentali.',src:['Renaissance Capital IPO Monitor','SEC S-1 filings','Bloomberg IPO Data','SPAC Research']},
+  retail_frenzy:{title:'Retail Frenzy Index',desc:'Google Trends su keyword finanziarie, volume opzioni 0DTE retail, adozione asset speculativi. Storicamente picca 4-8 settimane prima del top di mercato.',src:['Google Trends API','CBOE Options Data','Reddit r/wallstreetbets','Vanda Research Retail Flow']},
+  skyscraper:{title:'Skyscraper & Excess Index',desc:'Grattacieli record annunciati globalmente, backlog superyacht e jet privati, record nelle aste d\'arte contemporanea. Segnale di fase del ciclo su scala di mesi-anni.',src:['CTBUH Council on Tall Buildings','Superyacht Fan Order Book','Christie\'s e Sotheby\'s','GAMA Aviation Data']}
 };
 
 function openInfo(id){
   var cnt=document.getElementById('ipcnt');
   if(id==='markets'){
-    var mkts=lastSignals&&lastSignals.find(function(s){return s.id==='markets';});
+    var mkts=lastSignals&&lastSignals.filter(function(s){return s.id==='markets';})[0];
     if(!mkts){cnt.innerHTML='<div style="color:var(--mt);font-size:13px">Carica prima i dati.</div>';}
     else{
       var subRows=(mkts.subsignals||[]).map(function(ss){
-        return '<div class="sub-row">'+
+        var tc=ss.trend==='up'?'#ef4444':ss.trend==='down'?'#22c55e':'#6b7280';
+        var ta=ss.trend==='up'?'▲':ss.trend==='down'?'▼':'▬';
+        return'<div class="sub-row">'+
           '<div class="sub-row-top">'+
             '<span class="sub-label">'+ss.label+'</span>'+
             '<div class="sub-right">'+
               '<span class="sub-wt">'+ss.weight+'%</span>'+
               '<span class="sub-score" style="color:'+col(ss.score)+'">'+ss.score+'</span>'+
-              '<span class="sub-tnd" style="color:'+(ss.trend==='up'?'#ef4444':ss.trend==='down'?'#22c55e':'#6b7280')+'">'+(ss.trend==='up'?'▲':ss.trend==='down'?'▼':'▬')+'</span>'+
+              '<span class="sub-tnd" style="color:'+tc+'">'+ta+'</span>'+
             '</div>'+
           '</div>'+
           '<div class="sub-bar-bg"><div class="sub-bar-fill" style="width:'+ss.score+'%;background:'+col(ss.score)+'"></div></div>'+
@@ -303,7 +317,9 @@ function openInfo(id){
     }
   } else {
     var d=SINFO[id];if(!d)return;
-    cnt.innerHTML='<div class="ititle">'+d.title+'</div><div class="idesc">'+d.desc+'</div><div class="isrchd">Fonti dati principali</div>'+d.src.map(function(s){return'<div class="isrc">'+s+'</div>';}).join('');
+    cnt.innerHTML='<div class="ititle">'+d.title+'</div><div class="idesc">'+d.desc+'</div>'+
+      '<div class="isrchd">Fonti dati principali</div>'+
+      d.src.map(function(s){return'<div class="isrc">'+s+'</div>';}).join('');
   }
   document.getElementById('iov').classList.add('open');
 }
@@ -311,19 +327,15 @@ function closeInfo(){document.getElementById('iov').classList.remove('open');}
 
 /* ── LOAD ────────────────────────────────────────────────── */
 async function load(){
-  var ovl=document.getElementById('ovl');
-  var lmsg=document.getElementById('lmsg');
-  ovl.classList.add('on');
-  lmsg.textContent='Caricamento dati…';
+  var ovl=document.getElementById('ovl'),lmsg=document.getElementById('lmsg');
+  ovl.classList.add('on');lmsg.textContent='Caricamento dati…';
   try{
     var res=await fetch('/api/data');
-    console.log('fetch ok, status:', res.status);
     if(!res.ok){
       var e=await res.json().catch(function(){return{};});
       throw new Error(e.error||'Errore '+res.status);
     }
     var r=await res.json();
-    console.log('data ok, score:', r.composite_score, 'history:', r._history?.length);
     var score=Math.max(0,Math.min(100,r.composite_score));
     lastSignals=r.signals;
     animScore(score);
@@ -341,7 +353,7 @@ async function load(){
       document.getElementById('stale').style.display=hoursOld>14?'block':'none';
     }
     if(r.signals&&r.signals.length)renderSigs(r.signals);
-    setTimeout(function(){drawSpark(r._history||[]);},50);
+    drawSpark(r._history||[]);
   }catch(err){
     document.getElementById('summ').textContent=err.message;
     console.error(err);
@@ -350,10 +362,7 @@ async function load(){
   }
 }
 
-window.addEventListener('DOMContentLoaded',function(){
-  drawSpark();
-  load();
-});
+window.addEventListener('DOMContentLoaded',load);
 </script>
 </body>
 </html>
