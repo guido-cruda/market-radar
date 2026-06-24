@@ -11,16 +11,12 @@
 <title>Market Correction Radar</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{color-scheme:dark;--bg:#07080d;--card:#0d0f18;--bd:#1c1f30;--txt:#e8eaf2;--mt:#6b7280;--ft:#2d3140}
+:root{color-scheme:dark;--bg:#07080d;--card:#0d0f18;--bd:#1c1f30;--txt:#e8eaf2;--mt:#6b7280}
 html,body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;min-height:100dvh;overflow-x:hidden}
-.hdr{display:flex;align-items:center;justify-content:flex-end;padding:12px 20px;padding-top:calc(env(safe-area-inset-top,0px)+12px);position:sticky;top:0;background:var(--bg);z-index:10}
-.gauge-title{text-align:center;margin-bottom:10px}
-.gauge-title-main{font-size:15px;font-weight:700;letter-spacing:.04em;color:var(--txt)}
-.gauge-title-main span{color:var(--mt);font-weight:400}
-.live{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mt);letter-spacing:.1em}
-.pulse{width:7px;height:7px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{opacity:.6;box-shadow:0 0 0 5px rgba(34,197,94,0)}}
-.main{padding:20px 16px 40px;max-width:460px;margin:0 auto}
+.safe-top{height:calc(env(safe-area-inset-top,0px) + 16px)}
+.main{padding:0 16px 40px;max-width:460px;margin:0 auto}
+.gauge-title{text-align:center;padding-top:20px;margin-bottom:12px;font-size:15px;font-weight:700;letter-spacing:.04em}
+.gauge-title span{color:var(--mt);font-weight:400}
 .gwrap{display:flex;flex-direction:column;align-items:center;margin-bottom:4px}
 svg.g{width:100%;max-width:300px;overflow:visible}
 .sblock{margin-top:-8px;text-align:center}
@@ -28,7 +24,8 @@ svg.g{width:100%;max-width:300px;overflow:visible}
 .snum{font-size:58px;font-weight:800;letter-spacing:-2px;line-height:1;font-variant-numeric:tabular-nums;transition:color .5s;color:var(--mt)}
 .spct{font-size:24px;font-weight:700;margin-top:10px;margin-left:2px;opacity:.75;transition:color .5s;color:var(--mt)}
 .rpill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-top:8px;transition:all .5s;background:#1c1f30;color:var(--mt)}
-.upd{font-size:11px;color:var(--mt);margin-top:8px}
+.upd{font-size:11px;color:var(--mt);margin-top:8px;display:flex;align-items:center;justify-content:center;gap:5px}
+.updot{width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;flex-shrink:0}
 .stale{font-size:10px;color:#f97316;margin-top:4px;display:none}
 .summ{background:var(--card);border:1px solid var(--bd);border-radius:13px;padding:14px 16px;margin:18px 0 14px;font-size:13px;line-height:1.65;color:#9ca3af}
 .shd{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--mt);margin:0 0 10px}
@@ -50,18 +47,13 @@ svg.g{width:100%;max-width:300px;overflow:visible}
 .barfill{height:100%;border-radius:4px;transition:width .9s cubic-bezier(.4,0,.2,1)}
 .sigdet{font-size:11px;color:var(--mt);line-height:1.45}
 .sub-badge{font-size:9px;font-weight:700;letter-spacing:.1em;color:#4a5280;background:#141628;border:1px solid #252840;border-radius:8px;padding:2px 7px;margin-left:4px;flex-shrink:0}
-.spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
-.spin.on{display:block}
-@keyframes spin{to{transform:rotate(360deg)}}
-.status-bar{display:flex;align-items:center;justify-content:center;gap:16px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 16px;margin-bottom:22px;flex-wrap:wrap}
-.status-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--mt)}
-.status-item strong{color:#c0c8e0;font-weight:600}
-.status-dot{width:5px;height:5px;border-radius:50%;background:var(--bd)}
 .iov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:80;align-items:center;justify-content:center;padding:20px 16px}
 .iov.open{display:flex}
 .ipnl{background:#0e1020;border:1px solid #1c2044;border-radius:18px;padding:22px 20px 28px;width:100%;max-width:440px;max-height:82vh;overflow-y:auto;position:relative}
 .iov.open .ipnl{animation:popIn .25s cubic-bezier(.34,1.2,.64,1) both}
 @keyframes popIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{opacity:.6;box-shadow:0 0 0 5px rgba(34,197,94,0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 .iclose{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;background:#1a1d2e;border:1px solid var(--bd);color:var(--mt);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .ititle{font-size:15px;font-weight:700;color:#e8eaf2;margin-bottom:8px;padding-right:32px;line-height:1.3}
 .idesc{font-size:13px;color:#9ca3af;line-height:1.7;margin-bottom:16px}
@@ -89,12 +81,11 @@ svg.g{width:100%;max-width:300px;overflow:visible}
 </head>
 <body style="background:#07080d">
 
-<div class="hdr" style="border:none;padding:8px 20px;padding-top:calc(env(safe-area-inset-top,0px)+8px)"></div>
+<div class="safe-top"></div>
 
 <div class="main">
-  <div class="gauge-title">
-    <div class="gauge-title-main">🌍 Market Correction <span>Radar</span></div>
-  </div>
+  <div class="gauge-title">🌍 Market Correction <span>Radar</span></div>
+
   <div class="gwrap">
     <svg class="g" viewBox="0 0 300 195" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -120,12 +111,23 @@ svg.g{width:100%;max-width:300px;overflow:visible}
         <span class="spct" id="spct">%</span>
       </div>
       <div class="rpill" id="rpill">Caricamento…</div>
-      <div class="upd" id="upd"></div>
+      <div class="upd" id="upd" style="display:none">
+        <div class="updot"></div>
+        <span id="updtxt"></span>
+      </div>
       <div class="stale" id="stale">⚠ Dati non aggiornati oggi</div>
+    </div>
+  </div>
+
+  <div class="summ" id="summ">Caricamento dati in corso…</div>
+
+  <div class="tbox">
+    <div class="shd">Trend sessione</div>
+    <canvas id="spark" height="42" style="width:100%;display:block"></canvas>
+  </div>
 
   <div class="shd" id="sighd" style="margin-bottom:8px"></div>
   <div class="sigs" id="sigs"></div>
-
 </div>
 
 <div class="foot">Market Correction Radar · Solo scopi informativi · Non è consulenza finanziaria</div>
@@ -175,37 +177,28 @@ function animScore(target){
 }
 
 /* ── HELPERS ─────────────────────────────────────────────── */
-function timeAgo(iso){
-  const h=Math.floor((Date.now()-new Date(iso).getTime())/3600000);
-  const m=Math.floor((Date.now()-new Date(iso).getTime())/60000);
-  if(h>=24){const d=Math.floor(h/24);return`${d} giorn${d>1?'i':'o'} fa`;}
-  if(h>0)return`${h}h fa`;
-  if(m>0)return`${m} min fa`;
-  return'adesso';
-}
-function nextUpdateTime() {
-  const now = new Date();
-  const slots = [4, 16]; // UTC: 4=6 italiane, 16=18 italiane
-  for (const h of slots) {
-    if (now.getUTCHours() < h || (now.getUTCHours() === h && now.getUTCMinutes() === 0)) {
-      const next = new Date(now);
-      next.setUTCHours(h, 0, 0, 0);
-      return `oggi alle ${next.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'})}`;
+function nextUpdateTime(){
+  const now=new Date();
+  const slots=[4,16];
+  for(const h of slots){
+    if(now.getUTCHours()<h||(now.getUTCHours()===h&&now.getUTCMinutes()===0)){
+      const next=new Date(now);next.setUTCHours(h,0,0,0);
+      return'oggi alle '+next.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
     }
   }
-  const tomorrow = new Date(now);
-  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  tomorrow.setUTCHours(6, 0, 0, 0);
-  const dow = tomorrow.getDay();
-  if (dow === 6) tomorrow.setUTCDate(tomorrow.getUTCDate() + 2);
-  if (dow === 0) tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-  return `domani alle ${tomorrow.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'})}`;
+  const tomorrow=new Date(now);
+  tomorrow.setUTCDate(tomorrow.getUTCDate()+1);
+  tomorrow.setUTCHours(4,0,0,0);
+  const dow=tomorrow.getDay();
+  if(dow===6)tomorrow.setUTCDate(tomorrow.getUTCDate()+2);
+  if(dow===0)tomorrow.setUTCDate(tomorrow.getUTCDate()+1);
+  return'domani alle '+tomorrow.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
 }
 
 function trendHtml(t){
   const map={up:['▲','#ef4444'],down:['▼','#22c55e'],stable:['▬','#6b7280']};
   const[sym,c]=map[t]||map.stable;
-  return`<span class="sigtnd" style="color:${c}">${sym}</span>`;
+  return'<span class="sigtnd" style="color:'+c+'">'+sym+'</span>';
 }
 
 const SIG_META={
@@ -217,98 +210,100 @@ const SIG_META={
 let hist=[],lastSignals=null;
 
 function renderSigs(sigs){
-  document.getElementById('sighd').textContent=`Segnali (${sigs.length})`;
-  document.getElementById('sigs').innerHTML=sigs.map(s=>{
-    const icon=(SIG_META[s.id]||{icon:'📌'}).icon;
-    const isMkts=s.id==='markets';
-    return`<div class="sig${isMkts?' markets-sig':''}">
-      <div class="sigtop">
-        <div class="sigl">
-          <span class="sigfl">${icon}</span>
-          <span class="signame">${s.label}</span>
-          <span class="wt">${s.weight}%</span>
-          ${isMkts?'<span class="sub-badge">10 indici</span>':''}
-          <button class="ibtn" onclick="openInfo('${s.id}')">i</button>
-        </div>
-        <div class="sigr">
-          <span class="sigscore" style="color:${col(s.score)}">${s.score}</span>
-          ${trendHtml(s.trend)}
-        </div>
-      </div>
-      <div class="barbg"><div class="barfill" style="width:${s.score}%;background:${col(s.score)}"></div></div>
-      <div class="sigdet">${s.detail}</div>
-    </div>`;
+  document.getElementById('sighd').textContent='Segnali ('+sigs.length+')';
+  document.getElementById('sigs').innerHTML=sigs.map(function(s){
+    var icon=(SIG_META[s.id]||{icon:'📌'}).icon;
+    var isMkts=s.id==='markets';
+    return '<div class="sig'+(isMkts?' markets-sig':'')+'">'+
+      '<div class="sigtop">'+
+        '<div class="sigl">'+
+          '<span class="sigfl">'+icon+'</span>'+
+          '<span class="signame">'+s.label+'</span>'+
+          '<span class="wt">'+s.weight+'%</span>'+
+          (isMkts?'<span class="sub-badge">10 indici</span>':'')+
+          '<button class="ibtn" onclick="openInfo(\''+s.id+'\')">i</button>'+
+        '</div>'+
+        '<div class="sigr">'+
+          '<span class="sigscore" style="color:'+col(s.score)+'">'+s.score+'</span>'+
+          trendHtml(s.trend)+
+        '</div>'+
+      '</div>'+
+      '<div class="barbg"><div class="barfill" style="width:'+s.score+'%;background:'+col(s.score)+'"></div></div>'+
+      '<div class="sigdet">'+s.detail+'</div>'+
+    '</div>';
   }).join('');
 }
 
 function drawSpark(){
-  const c=document.getElementById('spark');
-  if(!c) return;
-  const dpr=window.devicePixelRatio||1,w=c.offsetWidth||280,h=42;
+  var c=document.getElementById('spark');
+  if(!c||!c.offsetParent&&c.offsetWidth===0)return;
+  var dpr=window.devicePixelRatio||1,w=c.offsetWidth||280,h=42;
   c.width=w*dpr;c.height=h*dpr;
-  const ctx=c.getContext('2d');ctx.scale(dpr,dpr);
+  var ctx=c.getContext('2d');ctx.scale(dpr,dpr);
   if(hist.length<2){
     ctx.strokeStyle='#1c1f30';ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();
     ctx.fillStyle='#374151';ctx.font='11px -apple-system';ctx.textAlign='center';
     ctx.fillText('Nessun dato in sessione',w/2,h/2+4);return;
   }
-  const pts=hist.map((v,i)=>({x:(i/(hist.length-1))*(w-16)+8,y:h-6-(v/100)*(h-12)}));
-  const grd=ctx.createLinearGradient(0,0,0,h);
+  var pts=hist.map(function(v,i){return{x:(i/(hist.length-1))*(w-16)+8,y:h-6-(v/100)*(h-12)};});
+  var grd=ctx.createLinearGradient(0,0,0,h);
   grd.addColorStop(0,'rgba(99,102,241,.35)');grd.addColorStop(1,'rgba(99,102,241,0)');
   ctx.beginPath();ctx.moveTo(pts[0].x,h);
-  pts.forEach(p=>ctx.lineTo(p.x,p.y));
+  pts.forEach(function(p){ctx.lineTo(p.x,p.y);});
   ctx.lineTo(pts[pts.length-1].x,h);ctx.closePath();
   ctx.fillStyle=grd;ctx.fill();
   ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
-  pts.forEach(p=>ctx.lineTo(p.x,p.y));
+  pts.forEach(function(p){ctx.lineTo(p.x,p.y);});
   ctx.strokeStyle='#6366f1';ctx.lineWidth=2;ctx.stroke();
-  const lp=pts[pts.length-1];
+  var lp=pts[pts.length-1];
   ctx.beginPath();ctx.arc(lp.x,lp.y,3,0,Math.PI*2);ctx.fillStyle='#818cf8';ctx.fill();
 }
-window.addEventListener('resize',drawSpark);drawSpark();
+window.addEventListener('resize',drawSpark);
 
-/* ── INFO PANEL ──────────────────────────────────────────── */
-const SINFO={
-  insider:{title:'Insider Selling Ratio',desc:'Monitora il rapporto tra vendite e acquisti di azioni proprie da parte di CEO, CFO e altri dirigenti sul mercato aperto. USA: Form 4 depositati alla SEC entro 2 giorni dalla transazione. Quando il ratio è elevato e distribuito su più settori, indica che chi ha accesso diretto ai dati aziendali si sta alleggerendo.',src:['SEC EDGAR Form 4 filings','Bloomberg Corporate Insider Data','VerityData Insider Tracking','OpenInsider.com']},
-  ipo_fever:{title:'IPO Fever Index',desc:'Misura il grado di speculazione nel mercato primario: percentuale di IPO con EBITDA negativo negli ultimi 90 giorni, numero di SPAC attivi in cerca di target, multipli price/sales medi al momento della quotazione. Valori elevati indicano che il mercato finanzia narrative di crescita ignorando i fondamentali.',src:['Renaissance Capital IPO Monitor','SEC S-1 e S-4 filings','Bloomberg IPO Data','SPAC Research']},
-  retail_frenzy:{title:'Retail Frenzy Index',desc:'Composito di partecipazione speculativa retail: Google Trends su keyword come "how to invest" e "buy stocks", volume di opzioni a scadenza giornaliera (0DTE) acquistate da retail, tasso di adozione di asset speculativi come proxy di euforia popolare. Storicamente picca 4-8 settimane prima del top di mercato.',src:['Google Trends API','CBOE Options Data (0DTE volume)','Reddit API r/wallstreetbets','Vanda Research Retail Flow']},
-  skyscraper:{title:'Skyscraper & Excess Index',desc:'Proxy di liquidità eccessiva nel sistema economico. Il Skyscraper Index (Barclays 2012) documenta come i grattacieli record globali vengano annunciati durante i picchi di credito facile. Integrato con backlog ordini di superyacht e jet privati e prezzi record nelle aste d\'arte contemporanea. Opera su scala di mesi-anni: segnale di fase del ciclo, non di timing.',src:['CTBUH Council on Tall Buildings','Superyacht Fan Order Book','Christie\'s e Sotheby\'s Press Release','GAMA Aviation Data']}
+/* ── INFO ────────────────────────────────────────────────── */
+var SINFO={
+  insider:{title:'Insider Selling Ratio',desc:'Monitora il rapporto tra vendite e acquisti di azioni proprie da parte di CEO, CFO e altri dirigenti sul mercato aperto. USA: Form 4 depositati alla SEC entro 2 giorni. Quando il ratio è elevato su più settori, indica che chi ha accesso diretto ai dati aziendali si sta alleggerendo.',src:['SEC EDGAR Form 4 filings','Bloomberg Corporate Insider Data','VerityData','OpenInsider.com']},
+  ipo_fever:{title:'IPO Fever Index',desc:'Percentuale di IPO con EBITDA negativo negli ultimi 90 giorni, numero di SPAC attivi, multipli price/sales medi. Valori elevati indicano che il mercato finanzia narrative di crescita ignorando i fondamentali.',src:['Renaissance Capital IPO Monitor','SEC S-1 filings','Bloomberg IPO Data','SPAC Research']},
+  retail_frenzy:{title:'Retail Frenzy Index',desc:'Google Trends su keyword finanziarie, volume opzioni 0DTE retail, adozione asset speculativi. Proxy di euforia popolare. Storicamente picca 4-8 settimane prima del top di mercato.',src:['Google Trends API','CBOE Options Data','Reddit r/wallstreetbets','Vanda Research Retail Flow']},
+  skyscraper:{title:'Skyscraper & Excess Index',desc:'Grattacieli record annunciati globalmente (Skyscraper Index Barclays 2012), backlog superyacht e jet privati, record nelle aste d\'arte contemporanea. Segnale di fase del ciclo su scala di mesi-anni.',src:['CTBUH Council on Tall Buildings','Superyacht Fan Order Book','Christie\'s e Sotheby\'s','GAMA Aviation Data']}
 };
 
 function openInfo(id){
-  const cnt=document.getElementById('ipcnt');
+  var cnt=document.getElementById('ipcnt');
   if(id==='markets'){
-    const mkts=lastSignals?.find(s=>s.id==='markets');
+    var mkts=lastSignals&&lastSignals.find(function(s){return s.id==='markets';});
     if(!mkts){cnt.innerHTML='<div style="color:var(--mt);font-size:13px">Carica prima i dati.</div>';}
     else{
-      cnt.innerHTML=`
-        <div class="ititle">📊 Mercati Finanziari Globali</div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-          <span style="font-size:28px;font-weight:800;color:${col(mkts.score)}">${mkts.score}</span>
-          <div><div style="font-size:11px;color:var(--mt)">Score composito</div>
-          <div style="font-size:12px;font-weight:600;color:${col(mkts.score)}">${rlbl(mkts.score)}</div></div>
-        </div>
-        <hr class="sub-divider">
-        <div class="sub-hd">10 sub-indici con pesi interni</div>
-        ${(mkts.subsignals||[]).map(ss=>`
-          <div class="sub-row">
-            <div class="sub-row-top">
-              <span class="sub-label">${ss.label}</span>
-              <div class="sub-right">
-                <span class="sub-wt">${ss.weight}%</span>
-                <span class="sub-score" style="color:${col(ss.score)}">${ss.score}</span>
-                <span class="sub-tnd" style="color:${ss.trend==='up'?'#ef4444':ss.trend==='down'?'#22c55e':'#6b7280'}">${ss.trend==='up'?'▲':ss.trend==='down'?'▼':'▬'}</span>
-              </div>
-            </div>
-            <div class="sub-bar-bg"><div class="sub-bar-fill" style="width:${ss.score}%;background:${col(ss.score)}"></div></div>
-            <div class="sub-detail">${ss.detail}</div>
-          </div>`).join('')}
-        <div style="font-size:10px;color:#374151;margin-top:8px">Score composito = Σ(score × peso) / 100</div>`;
+      var subRows=(mkts.subsignals||[]).map(function(ss){
+        return '<div class="sub-row">'+
+          '<div class="sub-row-top">'+
+            '<span class="sub-label">'+ss.label+'</span>'+
+            '<div class="sub-right">'+
+              '<span class="sub-wt">'+ss.weight+'%</span>'+
+              '<span class="sub-score" style="color:'+col(ss.score)+'">'+ss.score+'</span>'+
+              '<span class="sub-tnd" style="color:'+(ss.trend==='up'?'#ef4444':ss.trend==='down'?'#22c55e':'#6b7280')+'">'+(ss.trend==='up'?'▲':ss.trend==='down'?'▼':'▬')+'</span>'+
+            '</div>'+
+          '</div>'+
+          '<div class="sub-bar-bg"><div class="sub-bar-fill" style="width:'+ss.score+'%;background:'+col(ss.score)+'"></div></div>'+
+          '<div class="sub-detail">'+ss.detail+'</div>'+
+        '</div>';
+      }).join('');
+      cnt.innerHTML=
+        '<div class="ititle">📊 Mercati Finanziari Globali</div>'+
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+
+          '<span style="font-size:28px;font-weight:800;color:'+col(mkts.score)+'">'+mkts.score+'</span>'+
+          '<div><div style="font-size:11px;color:var(--mt)">Score composito</div>'+
+          '<div style="font-size:12px;font-weight:600;color:'+col(mkts.score)+'">'+rlbl(mkts.score)+'</div></div>'+
+        '</div>'+
+        '<hr class="sub-divider">'+
+        '<div class="sub-hd">10 sub-indici con pesi interni</div>'+
+        subRows+
+        '<div style="font-size:10px;color:#374151;margin-top:8px">Score composito = Σ(score × peso) / 100</div>';
     }
   } else {
-    const d=SINFO[id];if(!d)return;
-    cnt.innerHTML=`<div class="ititle">${d.title}</div><div class="idesc">${d.desc}</div><div class="isrchd">Fonti dati principali</div>${d.src.map(s=>`<div class="isrc">${s}</div>`).join('')}`;
+    var d=SINFO[id];if(!d)return;
+    cnt.innerHTML='<div class="ititle">'+d.title+'</div><div class="idesc">'+d.desc+'</div><div class="isrchd">Fonti dati principali</div>'+d.src.map(function(s){return'<div class="isrc">'+s+'</div>';}).join('');
   }
   document.getElementById('iov').classList.add('open');
 }
@@ -316,41 +311,36 @@ function closeInfo(){document.getElementById('iov').classList.remove('open');}
 
 /* ── LOAD ────────────────────────────────────────────────── */
 async function load(){
-  const ovl=document.getElementById('ovl'),
-        lmsg=document.getElementById('lmsg');
-  ovl.classList.add('on');lmsg.textContent='Caricamento dati…';
-
+  var ovl=document.getElementById('ovl');
+  var lmsg=document.getElementById('lmsg');
+  ovl.classList.add('on');
+  lmsg.textContent='Caricamento dati…';
   try{
-    const res=await fetch('/api/data');
+    var res=await fetch('/api/data');
     if(!res.ok){
-      const e=await res.json().catch(()=>({}));
-      throw new Error(e.error||`Errore ${res.status}`);
+      var e=await res.json().catch(function(){return{};});
+      throw new Error(e.error||'Errore '+res.status);
     }
-    const r=await res.json();
-    const score=Math.max(0,Math.min(100,r.composite_score));
+    var r=await res.json();
+    var score=Math.max(0,Math.min(100,r.composite_score));
     lastSignals=r.signals;
-
     animScore(score);
-    const pill=document.getElementById('rpill'),c=col(score);
+    var pill=document.getElementById('rpill'),c=col(score);
     pill.textContent=r.risk_level||rlbl(score);
-    pill.style.cssText=`background:${c}22;color:${c};border:1px solid ${c}44`;
+    pill.style.cssText='background:'+c+'22;color:'+c+';border:1px solid '+c+'44';
     document.getElementById('summ').textContent=r.summary||'';
-
     if(r._updated){
-      const t = new Date(r._updated).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
-      const isToday = new Date(r._updated).toDateString() === new Date().toDateString();
-      const prefix = isToday ? 'oggi' : new Date(r._updated).toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit'});
-      const dot = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;margin-right:5px;vertical-align:middle"></span>';
-      document.getElementById('upd').innerHTML = dot + '\u21bb ' + prefix + ' ' + t + '  \u00b7  \u23f1 prossimo ' + nextUpdateTime();
-      document.getElementById('upd').style.display = 'block';
-      const hoursOld = (Date.now() - new Date(r._updated).getTime()) / 3600000;
-      document.getElementById('stale').style.display = hoursOld > 14 ? 'block' : 'none';
+      var t=new Date(r._updated).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+      var isToday=new Date(r._updated).toDateString()===new Date().toDateString();
+      var prefix=isToday?'oggi':new Date(r._updated).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
+      document.getElementById('updtxt').textContent=prefix+' '+t+'  ·  prossimo '+nextUpdateTime();
+      document.getElementById('upd').style.display='flex';
+      var hoursOld=(Date.now()-new Date(r._updated).getTime())/3600000;
+      document.getElementById('stale').style.display=hoursOld>14?'block':'none';
     }
-
-    if(r.signals?.length)renderSigs(r.signals);
+    if(r.signals&&r.signals.length)renderSigs(r.signals);
     hist.push(score);if(hist.length>14)hist.shift();
-    drawSpark();
-
+    setTimeout(drawSpark,100);
   }catch(err){
     document.getElementById('summ').textContent=err.message;
     console.error(err);
@@ -359,7 +349,10 @@ async function load(){
   }
 }
 
-window.addEventListener('DOMContentLoaded', load);
+window.addEventListener('DOMContentLoaded',function(){
+  drawSpark();
+  load();
+});
 </script>
 </body>
 </html>
