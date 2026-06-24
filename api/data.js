@@ -12,7 +12,13 @@ module.exports = async function handler(req, res) {
     if (!data) {
       return res.status(404).json({ error: 'Nessun dato disponibile.' });
     }
-    const history = await redis.lrange('radar_history', 0, 13);
+    const raw = await redis.lrange('radar_history', 0, 13);
+    const history = raw.map(item => {
+      if (typeof item === 'string') {
+        try { return JSON.parse(item); } catch(e) { return null; }
+      }
+      return item;
+    }).filter(Boolean);
     return res.status(200).json({ ...data, _history: history });
   } catch (err) {
     return res.status(500).json({ error: err.message });
