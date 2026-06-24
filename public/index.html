@@ -48,11 +48,13 @@ svg.g{width:100%;max-width:300px;overflow:visible}
 .barfill{height:100%;border-radius:4px;transition:width .9s cubic-bezier(.4,0,.2,1)}
 .sigdet{font-size:11px;color:var(--mt);line-height:1.45}
 .sub-badge{font-size:9px;font-weight:700;letter-spacing:.1em;color:#4a5280;background:#141628;border:1px solid #252840;border-radius:8px;padding:2px 7px;margin-left:4px;flex-shrink:0}
-.btn{width:100%;padding:16px;background:linear-gradient(135deg,#141628,#1c1f38);border:1px solid #2a2e50;border-radius:14px;color:var(--txt);font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;letter-spacing:.04em;transition:transform .15s,opacity .15s;margin-bottom:28px}
-.btn:active{transform:scale(.97)}.btn:disabled{opacity:.45;cursor:default;transform:none}
 .spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
 .spin.on{display:block}
 @keyframes spin{to{transform:rotate(360deg)}}
+.status-bar{display:flex;align-items:center;justify-content:center;gap:16px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 16px;margin-bottom:22px;flex-wrap:wrap}
+.status-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--mt)}
+.status-item strong{color:#c0c8e0;font-weight:600}
+.status-dot{width:5px;height:5px;border-radius:50%;background:var(--bd)}
 .iov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:80;align-items:center;justify-content:center;padding:20px 16px}
 .iov.open{display:flex}
 .ipnl{background:#0e1020;border:1px solid #1c2044;border-radius:18px;padding:22px 20px 28px;width:100%;max-width:440px;max-height:82vh;overflow-y:auto;position:relative}
@@ -128,13 +130,15 @@ svg.g{width:100%;max-width:300px;overflow:visible}
     <canvas id="spark" height="42" style="width:100%;display:block"></canvas>
   </div>
 
+  <div class="status-bar" id="statusBar" style="display:none">
+    <div class="status-item">↻ Ultimo aggiornamento <strong id="lastUpd">—</strong></div>
+    <div class="status-dot"></div>
+    <div class="status-item">⏱ Prossimo <strong id="nextUpd">—</strong></div>
+  </div>
+
   <div class="shd" id="sighd" style="margin-bottom:8px"></div>
   <div class="sigs" id="sigs"></div>
 
-  <button class="btn" id="rbtn" onclick="load()">
-    <div class="spin" id="spin"></div>
-    <span id="btxt">Ricarica</span>
-  </button>
 </div>
 
 <div class="foot">Market Correction Radar · Solo scopi informativi · Non è consulenza finanziaria</div>
@@ -192,13 +196,23 @@ function timeAgo(iso){
   if(m>0)return`${m} min fa`;
   return'adesso';
 }
-function nextUpdate(){
-  const now=new Date();
-  const slots=[6,11,17];
-  for(const h of slots){
-    if(now.getUTCHours()<h)return`${h+2}:00`;
+function nextUpdateTime() {
+  const now = new Date();
+  const slots = [4, 16]; // UTC: 4=6 italiane, 16=18 italiane
+  for (const h of slots) {
+    if (now.getUTCHours() < h || (now.getUTCHours() === h && now.getUTCMinutes() === 0)) {
+      const next = new Date(now);
+      next.setUTCHours(h, 0, 0, 0);
+      return `oggi alle ${next.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'})}`;
+    }
   }
-  return'08:00 domani';
+  const tomorrow = new Date(now);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  tomorrow.setUTCHours(6, 0, 0, 0);
+  const dow = tomorrow.getDay();
+  if (dow === 6) tomorrow.setUTCDate(tomorrow.getUTCDate() + 2);
+  if (dow === 0) tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  return `domani alle ${tomorrow.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'})}`;
 }
 
 function trendHtml(t){
@@ -314,12 +328,8 @@ function closeInfo(){document.getElementById('iov').classList.remove('open');}
 
 /* ── LOAD ────────────────────────────────────────────────── */
 async function load(){
-  const btn=document.getElementById('rbtn'),
-        spin=document.getElementById('spin'),
-        btxt=document.getElementById('btxt'),
-        ovl=document.getElementById('ovl'),
+  const ovl=document.getElementById('ovl'),
         lmsg=document.getElementById('lmsg');
-  btn.disabled=true;spin.classList.add('on');btxt.textContent='Caricamento…';
   ovl.classList.add('on');lmsg.textContent='Caricamento dati…';
 
   try{
@@ -338,14 +348,17 @@ async function load(){
     pill.style.cssText=`background:${c}22;color:${c};border:1px solid ${c}44`;
     document.getElementById('summ').textContent=r.summary||'';
 
-    const updEl=document.getElementById('upd');
-    const staleEl=document.getElementById('stale');
     if(r._updated){
-      const ago=timeAgo(r._updated);
-      const t=new Date(r._updated).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
-      updEl.textContent=`Dati delle ${t} · aggiornato ${ago} · prossimo ~${nextUpdate()}`;
-      const hoursOld=(Date.now()-new Date(r._updated).getTime())/3600000;
-      staleEl.style.display=hoursOld>14?'block':'none';
+      const t = new Date(r._updated).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+      const d = new Date(r._updated).toLocaleDateString('it-IT', {day:'2-digit', month:'2-digit'});
+      const isToday = new Date(r._updated).toDateString() === new Date().toDateString();
+      document.getElementById('lastUpd').textContent = isToday ? `oggi alle ${t}` : `${d} alle ${t}`;
+      document.getElementById('nextUpd').textContent = nextUpdateTime();
+      document.getElementById('statusBar').style.display = 'flex';
+      document.getElementById('upd').style.display = 'none';
+      const staleEl = document.getElementById('stale');
+      const hoursOld = (Date.now() - new Date(r._updated).getTime()) / 3600000;
+      staleEl.style.display = hoursOld > 14 ? 'block' : 'none';
     }
 
     if(r.signals?.length)renderSigs(r.signals);
@@ -357,7 +370,6 @@ async function load(){
     console.error(err);
   }finally{
     ovl.classList.remove('on');
-    btn.disabled=false;spin.classList.remove('on');btxt.textContent='Ricarica';
   }
 }
 
