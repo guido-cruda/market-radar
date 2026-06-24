@@ -339,8 +339,7 @@ async function load(){
       document.getElementById('stale').style.display=hoursOld>14?'block':'none';
     }
     if(r.signals&&r.signals.length)renderSigs(r.signals);
-    hist.push(score);if(hist.length>14)hist.shift();
-    setTimeout(drawSpark,100);
+    setTimeout(function(){drawSpark(r._history||[]);},100);
   }catch(err){
     document.getElementById('summ').textContent=err.message;
     console.error(err);
