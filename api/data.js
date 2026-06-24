@@ -12,9 +12,9 @@ module.exports = async function handler(req, res) {
     if (!data) {
       return res.status(404).json({ error: 'Nessun dato disponibile.' });
     }
-    return res.status(200).json(data);
-  } catch (err) {
     const history = await redis.lrange('radar_history', 0, 13);
     return res.status(200).json({ ...data, _history: history });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 };
